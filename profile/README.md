@@ -1,4 +1,4 @@
-# Garman Unified Systems (GUS)
+# GUSystems (Garman Unified Systems)
 
 Private AI agent workforces for companies — run on their own infrastructure, with auditable receipts and approval gates.
 
