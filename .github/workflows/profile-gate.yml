@@ -1,0 +1,54 @@
+name: profile-gate
+
+# Docs-only gate for the org profile README.
+# This repo is public, so the job uses GitHub-hosted runners (self-hosted
+# runners are not safe on public repos). Satisfies GUS-CEO "verified runner"
+# / check-run requirement for profile PRs.
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+jobs:
+  profile-gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Profile README contract
+        run: |
+          set -euo pipefail
+          f=profile/README.md
+          test -f "$f"
+
+          # Primary brand + legal name once
+          grep -Fq 'GUSystems (Garman Unified Systems)' "$f"
+
+          # Systems catalog link
+          grep -Fq 'https://drewgarman.dev/systems' "$f"
+
+          # preview link only (domain not live)
+          grep -Fq '[preview](https://gus-site.pages.dev)' "$f"
+
+          # Forbidden: product pitch via iDirectShips hold language
+          if grep -Ei 'studio.?s hold|flagship products' "$f"; then
+            echo "Forbidden: iDirectShips house-product pitch language"
+            exit 1
+          fi
+
+          # Forbidden brand misspellings in this file
+          if grep -E 'Garman Universal Systems|G\.U\.S\.' "$f"; then
+            echo "Forbidden brand misspelling in profile README"
+            exit 1
+          fi
+
+          # Forbidden Garmin typo
+          if grep -Ei 'garmin' "$f"; then
+            echo "Garmin typo found — use GUSystems / Garman Unified Systems"
+            exit 1
+          fi
+
+          echo "profile README contract OK"
